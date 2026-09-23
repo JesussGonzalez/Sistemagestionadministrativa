@@ -1,0 +1,13 @@
+export type Role = 'SUPER_ADMIN'|'RRHH_ADMIN'|'RRHH'|'DEPARTAMENTO'|'SERVICIO'|'CONSULTA';
+export type Profile = { id:string; nombre:string; apellido:string; rol:Role; departamento_id:string|null; servicio_id:string|null; activo:boolean };
+export type Department = { id:string; nombre:string };
+export type Service = { id:string; nombre:string; departamento_id:string };
+export type Personnel = { id:string; lp:string; apellido:string; nombres:string; jerarquia:string|null; dni:string|null; cuil:string|null; telefono:string|null; email:string|null; funcion:string|null; horario:string|null; turno:string|null; fecha_ingreso:string|null; observaciones:string|null; activo:boolean; departamento_id:string; servicio_id:string };
+export type Movement = { id:string; personal_id:string; tipo:string; subtipo:string|null; fecha_desde:string; fecha_hasta:string|null; hora_desde:string|null; hora_hasta:string|null; descripcion:string|null; estado:string; departamento_id:string; servicio_id:string; personal?:{lp:string;apellido:string;nombres:string}|null };
+export type Expediente = { id:string; numero:string; asunto:string; tipo:string|null; estado:string; fecha_inicio:string; personal_id:string|null; departamento_id:string; servicio_id:string };
+export type Parte = { id:string; fecha:string; personal_id:string; turno:string; estado:string; hora_desde:string|null; hora_hasta:string|null; observaciones:string|null };
+export const rolesCentrales:Role[]=['SUPER_ADMIN','RRHH_ADMIN','RRHH'];
+export const turnos=['MAÑANA','TARDE','NOCHE'] as const;
+export const estadosParte=['PRESENTE','DESCANSO','LICENCIA MEDICA','LICENCIA ANUAL','FRANCO','DESPLAZAMIENTO','ARTICULO','ARTICULO 8','ARTICULO 4','ARTICULO 6','AUSENTE','GUARDIA PAGA','JUNTA MEDICA','SUSPENSION','ACCIDENTE LABORAL','PERMISO','COMISION','CAPACITACION','OTROS'];
+export const tiposMovimiento=['LICENCIA MEDICA','LICENCIA ANUAL','FRANCO','DESPLAZAMIENTO','ARTICULO 8','ARTICULO 4','ARTICULO 6','AUSENTE','GUARDIA PAGA','JUNTA MEDICA','SUSPENSION','ACCIDENTE LABORAL','PERMISO','COMISION','CAPACITACION','OTROS'];
+export const isoHoy=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
