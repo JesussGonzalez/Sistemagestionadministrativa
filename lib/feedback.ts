@@ -10,6 +10,19 @@ export type ToastPayload = {
   duration?: number;
 };
 
+export type PromptPayload = {
+  title: string;
+  message?: string;
+  label?: string;
+  placeholder?: string;
+  initialValue?: string;
+  minLength?: number;
+  maxLength?: number;
+  multiline?: boolean;
+  confirmLabel?: string;
+  cancelLabel?: string;
+};
+
 export type ConfirmPayload = {
   title: string;
   message: string;
@@ -20,6 +33,7 @@ export type ConfirmPayload = {
 
 const TOAST_EVENT='sga:toast';
 const CONFIRM_EVENT='sga:confirm';
+const PROMPT_EVENT='sga:prompt';
 
 export function notify(message:string,kind:FeedbackKind='info',title?:string,duration=4200){
   if(typeof window==='undefined')return;
@@ -33,4 +47,9 @@ export function confirmAction(payload:ConfirmPayload):Promise<boolean>{
   });
 }
 
-export const feedbackEvents={toast:TOAST_EVENT,confirm:CONFIRM_EVENT};
+export function promptAction(payload:PromptPayload):Promise<string|null>{
+  if(typeof window==='undefined')return Promise.resolve(null);
+  return new Promise(resolve=>window.dispatchEvent(new CustomEvent(PROMPT_EVENT,{detail:{payload,resolve}})));
+}
+
+export const feedbackEvents={toast:TOAST_EVENT,confirm:CONFIRM_EVENT,prompt:PROMPT_EVENT};
