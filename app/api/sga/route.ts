@@ -6,16 +6,28 @@ export const dynamic = 'force-dynamic';
 
 const COOKIE_NAME = 'sga_session';
 const ACTIONS = new Set([
-  'login','session','logout','password.change','structure','structure.department.save','structure.service.save',
-  'users.list','users.save','functions.get','functions.save',
+  'login','session','logout','password.change','password.users','password.reset',
+  'structure','structure.department.save','structure.service.save',
+  'users.list','users.save','functions.get','functions.save','schedules.list','schedules.save',
   'medical.access','medical.catalog','medical.list','medical.get','medical.doctor.save','medical.create','medical.upload','medical.register',
+  'medical.worked','medical.notes','medical.file','medical.pdf',
   'documents.catalog','documents.list','documents.save','documents.link','documents.cancel',
-  'libro.catalog','libro.list','libro.save','messages.catalog','messages.list','messages.get','messages.read','messages.send',
-  'reports.query','reports.export','alerts.list','calendar.get',
+  'libro.catalog','libro.list','libro.save',
+  'messages.catalog','messages.list','messages.get','messages.read','messages.send',
+  'messages.replies','messages.reply','messages.receipts','messages.receipt.confirm','messages.pending','messages.thread.read',
+  'reports.query','reports.export','reports.custom.templates','reports.custom.template.save','reports.custom.query','reports.custom.export',
+  'alerts.list','calendar.get',
   'personal.list','personal.get','personal.save','ficha.get','global.search',
   'movements.types','movements.list','movements.get','movements.save','movements.cancel',
+  'movementRequests.catalog','movementRequests.person','movementRequests.list','movementRequests.create','movementRequests.supervise','movementRequests.chief',
+  'departmentRequests.catalog','departmentRequests.person','departmentRequests.list','departmentRequests.create','departmentRequests.preapprove',
+  'departmentRequests.resolve','departmentRequests.cancel','departmentRequests.note','departmentRequests.article4',
   'expedientes.permissions','expedientes.list','expedientes.get','expedientes.save','expedientes.state',
-  'parte.get','parte.save','parte.send','parte.obligation'
+  'parte.get','parte.save','parte.send','parte.obligation','parte.consolidated','parte.consolidated.send','parte.reopen',
+  'parte.rrhh.inbox','parte.rrhh.receive','parte.board','parte.followup','parte.followup.save','parte.general',
+  'parte.general.excel','parte.general.pdf','parte.archive','parte.archive.close','parte.archive.excel',
+  'parte.presence','parte.presence.excel','parte.person.add','parte.person.remove',
+  'rectifications.list','rectifications.request','rectifications.respond','rectifications.resolve'
 ]);
 
 type UpstreamResponse = { ok:boolean; data?:unknown; message?:string };
