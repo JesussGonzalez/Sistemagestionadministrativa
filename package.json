@@ -1,7 +1,24 @@
 {
-  "name": "sga-next", "version": "0.1.0", "private": true,
-  "scripts": {"dev":"next dev", "build":"next build", "start":"next start", "typecheck":"tsc --noEmit"},
-  "dependencies": {"next":"16.3.6", "react":"19.2.3", "react-dom":"19.2.3", "@supabase/supabase-js":"2.57.0", "lucide-react":"0.468.0"},
-  "devDependencies": {"@types/node":"^22", "@types/react":"^19", "@types/react-dom":"^19", "typescript":"^5.9.2"},
+  "name": "sga-next",
+  "version": "0.2.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "16.3.6",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "lucide-react": "0.468.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5.9.2"
+  },
   "engines": {"node": ">=20.9.0"}
 }
