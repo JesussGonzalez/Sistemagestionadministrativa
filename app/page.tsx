@@ -14,7 +14,7 @@ import type {
 } from '@/lib/types';
 import { isoHoy, turnos } from '@/lib/types';
 import { AlertsWidget, CalendarWidget, DepartmentFunctionsModule, DepartmentsModule, DocumentsModule, LibroModule, MedicalModule, MessagesModule, ReportsModule, ServicesModule, UsersModule } from '@/components/sga-extended-modules';
-import { CustomReportsModule, MovementWorkflowModule, ParteAdvancedModule, SchedulesModule } from '@/components/sga-advanced-modules';
+import { CustomReportsModule, DepartmentAdministrationModule, MovementWorkflowModule, ParteAdvancedModule, SchedulesModule } from '@/components/sga-advanced-modules';
 
 type Tab = 'inicio'|'departamentos'|'servicios'|'usuarios'|'funciones'|'personal'|'movimientos'|'medicas'|'expedientes'|'documentos'|'parte'|'libro'|'mensajes'|'reportes';
 type Modal = 'persona'|'movimiento'|'expediente'|'password'|null;
@@ -310,7 +310,7 @@ export default function Home(){
         {tab==='departamentos'&&<DepartmentsModule profile={profile} structure={structure} onStructureChanged={()=>bootstrap(profile)}/>} 
         {tab==='servicios'&&<ServicesModule profile={profile} structure={structure} onStructureChanged={()=>bootstrap(profile)}/>} 
         {tab==='usuarios'&&<UsersModule profile={profile} structure={structure}/>} 
-        {tab==='funciones'&&<><DepartmentFunctionsModule profile={profile} structure={structure}/><SchedulesModule profile={profile}/></>} 
+        {tab==='funciones'&&<><DepartmentAdministrationModule profile={profile} structure={structure}/><DepartmentFunctionsModule profile={profile} structure={structure}/><SchedulesModule profile={profile}/></>} 
         {tab==='medicas'&&<MedicalModule/>}
         {tab==='documentos'&&<DocumentsModule/>}
         {tab==='movimientos'&&<MovementWorkflowModule profile={profile} structure={structure}/>}
