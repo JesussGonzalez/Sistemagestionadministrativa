@@ -12,8 +12,9 @@ import type {
   ParteObligation, PersonnelDetail, PersonnelListItem, PersonnelPaged, Profile, Service, Structure
 } from '@/lib/types';
 import { isoHoy, turnos } from '@/lib/types';
+import { AlertsWidget, CalendarWidget, DepartmentFunctionsModule, DepartmentsModule, DocumentsModule, LibroModule, MedicalModule, MessagesModule, ReportsModule, ServicesModule, UsersModule } from '@/components/sga-extended-modules';
 
-type Tab = 'inicio'|'personal'|'movimientos'|'expedientes'|'parte';
+type Tab = 'inicio'|'departamentos'|'servicios'|'usuarios'|'funciones'|'personal'|'movimientos'|'medicas'|'expedientes'|'documentos'|'parte'|'libro'|'mensajes'|'reportes';
 type Modal = 'persona'|'movimiento'|'expediente'|'password'|null;
 
 type PersonDraft = PersonnelDetail;
@@ -23,10 +24,19 @@ const blankPerson = (dep='',srv=''):PersonDraft => ({
 
 const menu = [
   {id:'inicio' as const,label:'Inicio',icon:LayoutDashboard,permission:'VER_INICIO'},
+  {id:'departamentos' as const,label:'Departamentos',icon:BriefcaseBusiness,permission:'VER_INICIO'},
+  {id:'servicios' as const,label:'Servicios',icon:BriefcaseBusiness,permission:'VER_INICIO'},
+  {id:'usuarios' as const,label:'Usuarios',icon:Users,permission:'GESTION_USUARIOS'},
+  {id:'funciones' as const,label:'Funciones departamentales',icon:UserRound,permission:'VER_INICIO'},
   {id:'personal' as const,label:'Personal',icon:Users,permission:'VER_PERSONAL'},
   {id:'movimientos' as const,label:'Movimientos',icon:Activity,permission:'VER_MOVIMIENTOS'},
+  {id:'medicas' as const,label:'Gestión de licencias médicas',icon:Activity,permission:'VER_INICIO'},
   {id:'expedientes' as const,label:'Expedientes',icon:FileText,permission:'VER_EXPEDIENTES'},
-  {id:'parte' as const,label:'Parte diario',icon:ClipboardList,permission:'VER_PARTE'}
+  {id:'documentos' as const,label:'Documentación',icon:FileText,permission:'VER_DOCUMENTOS'},
+  {id:'parte' as const,label:'Parte diario',icon:ClipboardList,permission:'VER_PARTE'},
+  {id:'libro' as const,label:'Libro Report',icon:BookOpen,permission:'VER_PARTE'},
+  {id:'mensajes' as const,label:'Mensajes',icon:Send,permission:'VER_INICIO'},
+  {id:'reportes' as const,label:'Reportes',icon:FileText,permission:'VER_REPORTES'}
 ];
 
 function errorText(error:unknown){ return error instanceof Error ? error.message : 'No se pudo completar la operación.'; }
@@ -53,6 +63,11 @@ export default function Home(){
   const [revision,setRevision]=useState(0);
   const [counters,setCounters]=useState([0,0,0]);
   const [obligation,setObligation]=useState<ParteObligation|null>(null);
+  const [medicalAccess,setMedicalAccess]=useState(false);
+
+  const [globalQuery,setGlobalQuery]=useState('');
+  const [globalResults,setGlobalResults]=useState<Array<{id:string;lp:string;apellido:string;nombres:string;jerarquia:string;departamentoId:string;servicioId:string;activo:boolean}>>([]);
+  const [globalOpen,setGlobalOpen]=useState(false);
 
   const [query,setQuery]=useState('');
   const [people,setPeople]=useState<PersonnelListItem[]>([]);
@@ -89,7 +104,16 @@ export default function Home(){
   const departments=structure.departamentos;
   const services=structure.servicios;
   const visibleServices=useMemo(()=>services.filter(s=>s.departamentoId===depId),[services,depId]);
-  const activeMenu=useMemo(()=>menu.filter(item=>item.id==='inicio'||!!profile?.permisos.includes(item.permission)),[profile]);
+  const activeMenu=useMemo(()=>menu.filter(item=>{
+    if(!profile)return false;
+    if(item.id==='inicio'||item.id==='departamentos'||item.id==='servicios')return true;
+    if(item.id==='usuarios')return structure.puedeGestionarUsuarios;
+    if(item.id==='funciones'||item.id==='mensajes')return ['SUPER_ADMIN','RRHH_ADMIN','RRHH','DEPARTAMENTO','SERVICIO'].includes(profile.rol);
+    if(item.id==='medicas')return medicalAccess;
+    if(item.id==='libro')return profile.permisos.includes('VER_PARTE')&&['SUPER_ADMIN','RRHH_ADMIN','RRHH','DEPARTAMENTO','SERVICIO'].includes(profile.rol);
+    return profile.permisos.includes(item.permission);
+  }),[profile,structure.puedeGestionarUsuarios,medicalAccess]);
+  const mobileMenu=useMemo(()=>activeMenu.filter(item=>['inicio','personal','movimientos','parte','mensajes'].includes(item.id)).slice(0,5),[activeMenu]);
   const canUseDep=profile?.rol==='SUPER_ADMIN'||profile?.rol==='RRHH_ADMIN'||profile?.rol==='RRHH';
   const canUseSrv=!profile?.servicioId;
   const refresh=()=>setRevision(v=>v+1);
@@ -111,6 +135,7 @@ export default function Home(){
   const bootstrap=useCallback(async(p:Profile)=>{
     const s=(await sgaCall<Structure>('structure')).data;
     applyStructure(s,p);
+    try{setMedicalAccess((await sgaCall<{puedeAcceder:boolean}>('medical.access')).data.puedeAcceder)}catch{setMedicalAccess(false)}
     if(p.rol==='SERVICIO'){
       try{
         const ob=(await sgaCall<ParteObligation>('parte.obligation')).data;
@@ -189,10 +214,21 @@ export default function Home(){
   }
   async function logout(){
     try{await sgaCall<null>('logout')}catch{/* limpiar igualmente */}
-    setProfile(null);setStructure({departamentos:[],servicios:[],puedeEditarEstructura:false,puedeGestionarUsuarios:false});setFicha(null);setTab('inicio');setModal(null);
+    setProfile(null);setMedicalAccess(false);setStructure({departamentos:[],servicios:[],puedeEditarEstructura:false,puedeGestionarUsuarios:false});setFicha(null);setTab('inicio');setModal(null);
   }
   function changeTab(next:Tab){if(profile?.rol==='SERVICIO'&&obligation?.bloqueo&&next!=='parte'){markMessage('Primero debés enviar el Parte Diario de hoy para continuar.','error');return;}setTab(next);setMobileOpen(false);setMessage('');setFicha(null)}
   function changeDepartment(value:string){setDepId(value);const first=services.find(s=>s.departamentoId===value&&s.activo)||services.find(s=>s.departamentoId===value);setSrvId(first?.id||'')}
+
+  async function runGlobalSearch(event?:FormEvent){
+    event?.preventDefault();
+    const term=globalQuery.trim();
+    if(term.length<2){setGlobalResults([]);setGlobalOpen(false);return;}
+    try{
+      const res=await sgaCall<{personas:Array<{id:string;lp:string;apellido:string;nombres:string;jerarquia:string;departamentoId:string;servicioId:string;activo:boolean}>}>('global.search',{termino:term});
+      setGlobalResults(res.data.personas);setGlobalOpen(true);
+    }catch(error){handleError(error)}
+  }
+  async function chooseGlobal(id:string){setGlobalOpen(false);setTab('personal');setMobileOpen(false);await openFicha(id)}
 
   async function openFicha(id:string){setFichaLoading(true);setFicha(null);try{setFicha((await sgaCall<Ficha>('ficha.get',{id})).data)}catch(error){handleError(error)}finally{setFichaLoading(false)}}
   async function editPerson(id?:string){
@@ -230,6 +266,22 @@ export default function Home(){
   if(!profile)return <main className="auth-screen"><div className="auth-decor"/><section className="auth-card"><span className="brand-mark">S✦</span><div className="eyebrow">PLATAFORMA INSTITUCIONAL</div><h1>Gestión administrativa,<br/><span>también desde el celular.</span></h1><p>Usá el mismo usuario y contraseña del SGA actual. Ambas interfaces trabajan sobre las mismas planillas.</p><form onSubmit={login} className="auth-form"><Input label="Usuario" value={usuario} onChange={setUsuario} required/><Input label="Contraseña" value={password} onChange={setPassword} type="password" required/>{authError&&<Notice>{authError}</Notice>}<button disabled={saving} className="primary" type="submit">{saving?'Ingresando…':'Ingresar al sistema'} <ArrowRight size={18}/></button></form><div className="security"><ShieldCheck size={17}/> Acceso restringido · Backend Google Sheets</div></section><div className="auth-foot">SGA · Sistema de Gestión Administrativa</div></main>;
 
   const currentLabel=menu.find(v=>v.id===tab)?.label||'Inicio';
+  const pageDescriptions:Record<Tab,string>={
+    inicio:'La misma información del SGA actual, con una interfaz adaptable a PC y celular.',
+    departamentos:'Administrá la estructura departamental usando las mismas hojas del sistema actual.',
+    servicios:'Consultá y administrá los servicios habilitados por departamento.',
+    usuarios:'Gestioná las cuentas, roles y ámbitos autorizados del SGA.',
+    funciones:'Asigná jefaturas, administración, supervisores y enfermeros jefes.',
+    personal:'Buscá por LP, apellido, nombre, DNI o CUIL y abrí la ficha completa.',
+    movimientos:'Consultá y registrá novedades usando las reglas del backend actual.',
+    medicas:'Gestión protegida de licencias médicas y sus comprobantes privados.',
+    expedientes:'Seguimiento administrativo conectado a las mismas planillas.',
+    documentos:'Legajo digital y documentación privada del personal.',
+    parte:'Cargá y enviá el parte con las novedades automáticas ya existentes.',
+    libro:'Libro de novedades por departamento, servicio y turno.',
+    mensajes:'Mensajes internos y confirmaciones de lectura por unidad.',
+    reportes:'Consultas administrativas y exportación a Excel con permisos del backend.'
+  };
   const selectedMoveType=movementCatalog.tipos.find(t=>t.nombre===moveDraft.tipo);
 
   return <div className="shell">
@@ -240,17 +292,28 @@ export default function Home(){
     </aside>
     {mobileOpen&&<button className="scrim" aria-label="Cerrar navegación" onClick={()=>setMobileOpen(false)}/>}
     <main className="main">
-      <header className="topbar"><button className="menu-trigger icon-btn" aria-label="Abrir menú" onClick={()=>setMobileOpen(true)}><Menu size={23}/></button><span className="breadcrumb">SGA <ChevronRight size={14}/> <b>{currentLabel}</b></span><div className="account"><span className="avatar">{profile.nombre.slice(0,1)}{profile.apellido.slice(0,1)}</span><div><strong>{profile.nombre} {profile.apellido}</strong><small>{profile.rol.replaceAll('_',' ')}</small></div></div></header>
+      <header className="topbar"><button className="menu-trigger icon-btn" aria-label="Abrir menú" onClick={()=>setMobileOpen(true)}><Menu size={23}/></button><span className="breadcrumb">SGA <ChevronRight size={14}/> <b>{currentLabel}</b></span>{profile.permisos.includes('VER_PERSONAL')&&<div className="top-search-wrap"><form className="top-search" onSubmit={runGlobalSearch}><Search size={15}/><input value={globalQuery} onChange={e=>{setGlobalQuery(e.target.value);if(e.target.value.trim().length<2){setGlobalOpen(false);setGlobalResults([])}}} placeholder="Buscar LP, apellido, nombre, DNI o CUIL…"/><button aria-label="Buscar">Buscar</button></form>{globalOpen&&<div className="top-search-results">{globalResults.length?globalResults.map(r=><button key={r.id} onClick={()=>void chooseGlobal(r.id)}><strong>{r.apellido}, {r.nombres}</strong><small>LP {r.lp} · {r.jerarquia||'Sin jerarquía'}</small></button>):<div className="top-search-empty">Sin coincidencias.</div>}</div>}</div>}<div className="account"><span className="avatar">{profile.nombre.slice(0,1)}{profile.apellido.slice(0,1)}</span><div><strong>{profile.nombre} {profile.apellido}</strong><small>{profile.rol.replaceAll('_',' ')}</small></div></div></header>
       <div className="content">
-        <div className="page-heading"><div><span className="eyebrow">SISTEMA DE GESTIÓN ADMINISTRATIVA</span><h1>{tab==='inicio'?`Hola, ${profile.nombre} 👋`:currentLabel}</h1><p>{tab==='inicio'?'La misma información del SGA actual, con una interfaz adaptable a PC y celular.':tab==='personal'?'Buscá por LP, apellido, nombre, DNI o CUIL y abrí la ficha completa.':tab==='movimientos'?'Consultá y registrá novedades usando las reglas del backend actual.':tab==='expedientes'?'Seguimiento administrativo conectado a las mismas planillas.':'Cargá y enviá el parte con las novedades automáticas ya existentes.'}</p></div><span className="today"><CalendarDays size={17}/> {new Intl.DateTimeFormat('es-AR',{dateStyle:'medium'}).format(new Date())}</span></div>
+        <div className="page-heading"><div><span className="eyebrow">SISTEMA DE GESTIÓN ADMINISTRATIVA</span><h1>{tab==='inicio'?`Hola, ${profile.nombre} 👋`:currentLabel}</h1><p>{pageDescriptions[tab]}</p></div><span className="today"><CalendarDays size={17}/> {new Intl.DateTimeFormat('es-AR',{dateStyle:'medium'}).format(new Date())}</span></div>
         {obligation?.bloqueo&&<Notice kind="error">Parte diario obligatorio: {obligation.pendientes?.map(x=>x.turno).join(', ')||'hay turnos pendientes'}.</Notice>}
         {message&&<Notice kind={messageKind}>{message}</Notice>}
 
         {tab==='inicio'&&<>
           <div className="stats"><div className="stat"><span className="stat-icon lavender"><Users/></span><p>Personal visible</p><strong>{loading?'…':counters[0].toLocaleString('es-AR')}</strong><small>Según tus permisos actuales</small></div><div className="stat"><span className="stat-icon blue"><Activity/></span><p>Movimientos activos</p><strong>{loading?'…':counters[1].toLocaleString('es-AR')}</strong><small>Leídos desde Sheets</small></div><div className="stat"><span className="stat-icon green"><BriefcaseBusiness/></span><p>Expedientes</p><strong>{loading?'…':counters[2].toLocaleString('es-AR')}</strong><small>Dentro de tu ámbito</small></div></div>
           <div className="section-title"><h2>Accesos rápidos</h2><p>Continuá con tus tareas habituales</p></div><div className="quick-grid">{activeMenu.filter(x=>x.id!=='inicio').map(item=>{const Icon=item.icon;return <button key={item.id} className="quick-card" onClick={()=>changeTab(item.id)}><span className="quick-icon"><Icon size={23}/></span><strong>{item.label}</strong><span>Abrir módulo <ArrowRight size={16}/></span></button>})}</div>
+          {profile.permisos.includes('VER_PERSONAL')&&profile.permisos.includes('VER_MOVIMIENTOS')&&<><AlertsWidget/><CalendarWidget/></>}
           <div className="hint"><BookOpen size={20}/><div><strong>Modo transición activo</strong><p>La página Next.js y la interfaz Apps Script trabajan sobre las mismas hojas. No hay una segunda base ni sincronización pendiente.</p></div></div>
         </>}
+
+        {tab==='departamentos'&&<DepartmentsModule profile={profile} structure={structure} onStructureChanged={()=>bootstrap(profile)}/>} 
+        {tab==='servicios'&&<ServicesModule profile={profile} structure={structure} onStructureChanged={()=>bootstrap(profile)}/>} 
+        {tab==='usuarios'&&<UsersModule profile={profile} structure={structure}/>} 
+        {tab==='funciones'&&<DepartmentFunctionsModule profile={profile} structure={structure}/>} 
+        {tab==='medicas'&&<MedicalModule/>}
+        {tab==='documentos'&&<DocumentsModule/>}
+        {tab==='libro'&&<LibroModule/>}
+        {tab==='mensajes'&&<MessagesModule/>}
+        {tab==='reportes'&&<ReportsModule profile={profile} structure={structure}/>} 
 
         {tab==='personal'&&<>
           <div className="toolbar"><div className="filters"><Select label="Departamento" value={depId} disabled={!canUseDep} onChange={changeDepartment}>{departments.map(d=><option key={d.id} value={d.id}>{d.nombre}</option>)}</Select><Select label="Servicio" value={srvId} disabled={!canUseSrv} onChange={setSrvId}><option value="">Todos los servicios</option>{visibleServices.map(s=><option key={s.id} value={s.id}>{s.nombre}</option>)}</Select></div><div className="toolbar-actions">{peopleCanEdit&&depId&&srvId&&<button className="primary" onClick={()=>void editPerson()}><Plus size={17}/> Nuevo personal</button>}</div></div>
@@ -277,7 +340,7 @@ export default function Home(){
       </div>
     </main>
 
-    <nav className="mobile-nav" aria-label="Navegación móvil">{activeMenu.slice(0,5).map(item=>{const Icon=item.icon;return <button key={item.id} className={tab===item.id?'active':''} onClick={()=>changeTab(item.id)}><Icon size={20}/><span>{item.label.replace(' diario','')}</span></button>})}</nav>
+    <nav className="mobile-nav" aria-label="Navegación móvil">{mobileMenu.map(item=>{const Icon=item.icon;return <button key={item.id} className={tab===item.id?'active':''} onClick={()=>changeTab(item.id)}><Icon size={20}/><span>{item.label.replace(' diario','')}</span></button>})}</nav>
 
     {(ficha||fichaLoading)&&<div className="modal-backdrop" onClick={e=>{if(e.target===e.currentTarget)setFicha(null)}}><aside className="detail-sheet">{fichaLoading?<div className="empty">Cargando ficha…</div>:ficha&&<><div className="modal-head"><button className="icon-btn" onClick={()=>setFicha(null)}><ArrowLeft size={20}/></button><button className="icon-btn" onClick={()=>setFicha(null)} aria-label="Cerrar"><X size={21}/></button></div><div className="person-avatar">{ficha.personal.Apellido.slice(0,1)}{ficha.personal.Nombres.slice(0,1)}</div><h2>{ficha.personal.Apellido}, {ficha.personal.Nombres}</h2><p>LP {ficha.personal.LP} · {ficha.personal.Jerarquia||'Sin jerarquía'}</p><div className="status-banner"><span>Estado actual</span><strong>{ficha.estadoActual}</strong></div><div className="detail-grid"><div><span>DNI</span><strong>{ficha.personal.DNI||'—'}</strong></div><div><span>CUIL</span><strong>{ficha.personal.CUIL||'—'}</strong></div><div><span>Teléfono</span><strong>{ficha.personal.Telefono||'—'}</strong></div><div><span>Email</span><strong>{ficha.personal.Email||'—'}</strong></div><div><span>Función</span><strong>{ficha.personal.Funcion||'—'}</strong></div><div><span>Horario</span><strong>{ficha.personal.Horario||'—'}</strong></div><div><span>Turno</span><strong>{ficha.personal.Turno||'—'}</strong></div><div><span>Ingreso</span><strong>{fmtDate(ficha.personal.FechaIngreso)}</strong></div></div>{ficha.personal.puedeEditar&&<button className="primary full" onClick={()=>void editPerson(ficha.personal.id)}>Editar datos</button>}<div className="sheet-section"><h3>Últimos movimientos</h3>{ficha.movimientos.length?ficha.movimientos.map((m,i)=><div className="timeline-item" key={`${m.tipo}-${m.fechaDesde}-${i}`}><span/><div><strong>{m.tipo}</strong><small>{fmtDate(m.fechaDesde)}{m.fechaHasta&&m.fechaHasta!==m.fechaDesde?` → ${fmtDate(m.fechaHasta)}`:''}{m.horaDesde?` · ${m.horaDesde}–${m.horaHasta}`:''}</small></div></div>):<p className="muted-text">Sin movimientos visibles.</p>}</div>{ficha.expedientes.length>0&&<div className="sheet-section"><h3>Expedientes</h3>{ficha.expedientes.map((e,i)=><div className="timeline-item" key={`${e.numero}-${i}`}><span/><div><strong>{e.numero} · {e.tipo}</strong><small>{fmtDate(e.fechaInicio)} · {e.estado}</small></div></div>)}</div>}</>}</aside></div>}
 

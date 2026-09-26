@@ -24,13 +24,24 @@ No existe sincronización entre dos bases: ambas interfaces leen y escriben el m
 
 - Login con el mismo usuario y contraseña del SGA actual.
 - Sesión protegida en cookie `HttpOnly`; el token de Apps Script no queda disponible para JavaScript del navegador.
-- Dashboard con totales según permisos.
+- Dashboard con totales, vencimientos administrativos y calendario según permisos.
+- Búsqueda global por LP, apellido, nombre, DNI o CUIL.
+- Departamentos y Servicios: consulta y mantenimiento cuando el perfil tiene permiso.
+- Usuarios: listado y administración para perfiles habilitados.
+- Funciones departamentales: asignaciones por departamento/servicio.
 - Personal: filtros, búsqueda, paginación, ficha integral, alta/edición básica conservando los campos no visibles.
 - Movimientos: listado, filtros y alta usando las validaciones actuales de Apps Script.
+- Gestión de licencias médicas: consulta, detalle, borrador, comprobante y registración con las reglas del backend existente.
 - Expedientes: listado, filtro por LP y alta.
+- Documentación: catálogo, consulta, carga de archivos, apertura y anulación según permisos.
 - Parte diario: lectura de novedades automáticas, borrador y envío formal.
+- Libro Report: consulta y registro de novedades según ámbito.
+- Mensajes: bandeja, detalle, confirmación de lectura y envío a destinos autorizados.
+- Reportes: personal, movimientos, licencias y expedientes con exportación a Excel.
 - Respeta los permisos y el ámbito definidos en el backend actual.
 - Diseño desktop responsive y navegación mobile-first.
+
+Todavía no se considera paridad total con todos los circuitos especializados del Apps Script. Quedan para una etapa posterior el tablero avanzado de partes, bandeja RR. HH., consolidación/recepción, rectificaciones/seguimiento y algunos flujos clínicos/documentales específicos.
 
 ## 1. Agregar el puente al Apps Script actual
 
@@ -55,6 +66,8 @@ Debe tener al menos 24 caracteres. No guardar ese valor en GitHub.
 8. Copiar la URL final que termina en `/exec`.
 
 La interfaz original Apps Script continúa usando `google.script.run` y sigue funcionando como antes.
+> **Importante al actualizar esta rama:** cuando `backend-apps-script/ApiNext.js` cambie, también hay que reemplazar ese archivo en el proyecto Apps Script y actualizar la implementación de la Aplicación web. La URL `/exec` puede seguir siendo la misma si se actualiza el despliegue existente.
+
 
 ## 2. Variables locales
 

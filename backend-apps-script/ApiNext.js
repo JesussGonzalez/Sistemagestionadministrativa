@@ -10,7 +10,7 @@
 function doPost(e) {
   try {
     const contenido = e && e.postData && typeof e.postData.contents === 'string' ? e.postData.contents : '';
-    if (!contenido || contenido.length > 1024 * 1024) return sgaApiJson_({ok:false,data:null,message:'Solicitud inválida.'});
+    if (!contenido || contenido.length > 6 * 1024 * 1024) return sgaApiJson_({ok:false,data:null,message:'Solicitud inválida.'});
     let req;
     try { req = JSON.parse(contenido); } catch (_) { return sgaApiJson_({ok:false,data:null,message:'JSON inválido.'}); }
     if (!req || typeof req !== 'object' || Array.isArray(req)) return sgaApiJson_({ok:false,data:null,message:'Solicitud inválida.'});
@@ -33,6 +33,37 @@ function doPost(e) {
       case 'logout': respuesta = cerrarSesion(token); break;
       case 'password.change': respuesta = cambiarMiContrasenaSGA(token, String(p.actual || ''), String(p.nueva || ''), String(p.confirmacion || '')); break;
       case 'structure': respuesta = obtenerEstructura(token); break;
+      case 'structure.department.save': respuesta = guardarDepartamento(token, p.data || {}); break;
+      case 'structure.service.save': respuesta = guardarServicio(token, p.data || {}); break;
+      case 'users.list': respuesta = listarUsuariosSGA(token); break;
+      case 'users.save': respuesta = guardarUsuarioSGA(token, p.data || {}); break;
+      case 'functions.get': respuesta = obtenerFuncionesDepartamentalesSGA(token, String(p.departamentoId || '')); break;
+      case 'functions.save': respuesta = guardarFuncionDepartamentalSGA(token, p.data || {}); break;
+      case 'medical.access': respuesta = obtenerAccesoLicenciasMedicasSGA(token); break;
+      case 'medical.catalog': respuesta = obtenerCatalogoLicenciasMedicasSGA(token); break;
+      case 'medical.list': respuesta = listarLicenciasMedicasSGA(token, p.filtro || {}); break;
+      case 'medical.get': respuesta = obtenerLicenciaMedicaSGA(token, String(p.id || '')); break;
+      case 'medical.doctor.save': respuesta = guardarMedicoSGA(token, p.data || {}); break;
+      case 'medical.create': respuesta = crearLicenciaMedicaSGA(token, p.data || {}); break;
+      case 'medical.upload': respuesta = subirComprobanteLicenciaSGA(token, String(p.id || ''), p.payload || {}); break;
+      case 'medical.register': respuesta = registrarLicenciaMedicaSGA(token, String(p.id || '')); break;
+      case 'documents.catalog': respuesta = obtenerCatalogoDocumentosSGA(token); break;
+      case 'documents.list': respuesta = listarDocumentosSGA(token, p.filtros || {}); break;
+      case 'documents.save': respuesta = guardarDocumentoSGA(token, p.data || {}); break;
+      case 'documents.link': respuesta = obtenerEnlaceDocumentoSGA(token, String(p.id || '')); break;
+      case 'documents.cancel': respuesta = anularDocumentoSGA(token, String(p.id || ''), String(p.motivo || '')); break;
+      case 'libro.catalog': respuesta = obtenerCatalogoLibroSGA(token); break;
+      case 'libro.list': respuesta = consultarLibroSGA(token, p.datos || {}); break;
+      case 'libro.save': respuesta = registrarNovedadLibroSGA(token, p.datos || {}); break;
+      case 'messages.catalog': respuesta = catalogoNotificacionesSGA(token); break;
+      case 'messages.list': respuesta = listarNotificacionesSGA(token); break;
+      case 'messages.get': respuesta = detalleNotificacionSGA(token, String(p.id || '')); break;
+      case 'messages.read': respuesta = marcarNotificacionLeidaSGA(token, String(p.mensajeId || ''), String(p.destinatarioId || '')); break;
+      case 'messages.send': respuesta = enviarNotificacionSGA(token, p.datos || {}); break;
+      case 'reports.query': respuesta = consultarReporteSGA(token, p.filtros || {}); break;
+      case 'reports.export': respuesta = exportarReporteExcelSGA(token, p.filtros || {}); break;
+      case 'alerts.list': respuesta = obtenerAlertasSGA(token, p.opciones || {}); break;
+      case 'calendar.get': respuesta = obtenerCalendarioSGA(token, p.opciones || {}); break;
       case 'personal.list': respuesta = listarPersonalSGA(token, p.filtros || {}); break;
       case 'personal.get': respuesta = obtenerPersonalSGA(token, p.id); break;
       case 'personal.save': respuesta = guardarPersonalSGA(token, p.data || {}); break;

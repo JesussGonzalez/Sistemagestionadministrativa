@@ -89,3 +89,42 @@ export const isoHoy = () => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 };
+
+export type AdminUser = { id:string; usuario:string; nombre:string; apellido:string; email:string; rol:Role; departamentoId:string; servicioId:string; activo:boolean };
+export type UsersData = { usuarios:AdminUser[]; rolesDisponibles:Role[] };
+
+export type DepartmentFunctionAssignment = { id:string; usuarioId:string; usuario:string; nombre:string; departamentoId:string; servicioId:string; funcion:string; activo:boolean };
+export type DepartmentFunctionUser = { id:string; usuario:string; rol:string; servicioId:string; nombre:string };
+export type DepartmentFunctionsData = {
+  departamentoId:string; puedeGestionar:boolean;
+  servicios:Array<{id:string;nombre:string}>; usuarios:DepartmentFunctionUser[]; asignaciones:DepartmentFunctionAssignment[];
+};
+
+export type MedicalAccess = { puedeAcceder:boolean; puedeGestionarMedicos:boolean };
+export type MedicalDoctor = { nombre:string; matricula:string; servicio:string };
+export type MedicalCatalog = { medicos:MedicalDoctor[]; puedeGestionarMedicos:boolean; plantillasConfiguradas:boolean };
+export type MedicalItem = { id:string; lp:string; nombre:string; desde:string; hasta:string; dias:number; estado:string; tieneComprobante:boolean; tieneNotas:boolean; movimientoId:string };
+export type MedicalDetail = MedicalItem & { diagnostico:string; medico:string; matricula:string; servicio:string; declaracionTrauma:string; actuacion:string; expedienteActuacion:string; fechaNota:string };
+
+export type DocumentCatalog = { tipos:Array<{id:string;nombre:string}>; puedeSubir:boolean; puedeAnular:boolean; maxMB:number };
+export type DocumentItem = { id:string; personalId:string; lp:string; nombreEmpleado:string; tipo:string; nombre:string; fecha:string; vence:string; estado:string };
+export type DocumentPaged = Paged<DocumentItem>;
+
+export type LibroCatalog = { departamentos:Array<{id:string;nombre:string}>; servicios:Array<{id:string;departamentoId:string;nombre:string}>; puedeEscribir:boolean };
+export type LibroItem = { id:string; fecha:string; servicio:string; servicioId:string; turno:string; tipo:string; asunto:string; detalle:string; resumen:string; fechaRegistro:string; registradoPor:string; envioId:string; estadoEnvio:string; nota:string };
+export type LibroData = { fecha:string; total:number; filas:LibroItem[] };
+
+export type MessageDestination = { id:string; tipo:string; departamentoId:string; servicioId:string; nombre:string };
+export type MessageCatalog = { puedeEnviar:boolean; destinos:MessageDestination[] };
+export type MessageItem = { id:string; asunto:string; prioridad:string; fecha:string; emisor:string; total:number; leidos:number; pendientes:number };
+export type MessageList = { filas:MessageItem[]; puedeEnviar:boolean };
+export type MessageDetail = { id:string; asunto:string; cuerpo:string; prioridad:string; fecha:string; emisor:string; puedeMarcar:boolean; destinos:Array<{id:string;tipo:string;nombre:string;leido:boolean;leidoPor:string;fechaLectura:string}> };
+
+export type ReportData = { tipo:string; columnas:string[]; filas:string[][]; total:number; generado:string; alcance:string; filtros:{desde:string;hasta:string;estado:string;lp:string} };
+export type FilePayload = { nombre:string; base64:string; mime:string };
+
+export type AlertItem = { personalId:string; lp:string; empleado:string; clase:string; tipo:string; fecha:string; situacion:string; diasRestantes:number };
+export type AlertsData = { items:AlertItem[]; total:number; mostrados:number; incluyeDocumentos:boolean };
+export type CalendarItem = { fecha:string; personalId:string; lp:string; empleado:string; clase:string; tipo:string; etiqueta:string };
+export type CalendarSummaryDay = { fecha:string; movimientos:number; documentos:number };
+export type CalendarData = { mes:string; resumen:CalendarSummaryDay[]; items:CalendarItem[]; incluyeDocumentos:boolean; total:number };

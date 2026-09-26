@@ -6,7 +6,13 @@ export const dynamic = 'force-dynamic';
 
 const COOKIE_NAME = 'sga_session';
 const ACTIONS = new Set([
-  'login','session','logout','password.change','structure','personal.list','personal.get','personal.save','ficha.get','global.search',
+  'login','session','logout','password.change','structure','structure.department.save','structure.service.save',
+  'users.list','users.save','functions.get','functions.save',
+  'medical.access','medical.catalog','medical.list','medical.get','medical.doctor.save','medical.create','medical.upload','medical.register',
+  'documents.catalog','documents.list','documents.save','documents.link','documents.cancel',
+  'libro.catalog','libro.list','libro.save','messages.catalog','messages.list','messages.get','messages.read','messages.send',
+  'reports.query','reports.export','alerts.list','calendar.get',
+  'personal.list','personal.get','personal.save','ficha.get','global.search',
   'movements.types','movements.list','movements.get','movements.save','movements.cancel',
   'expedientes.permissions','expedientes.list','expedientes.get','expedientes.save','expedientes.state',
   'parte.get','parte.save','parte.send','parte.obligation'
