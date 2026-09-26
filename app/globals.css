@@ -74,3 +74,6 @@
 @media(max-width:750px){.advanced-tabs{padding:0 12px 12px;overflow-x:auto;flex-wrap:nowrap}.advanced-tabs button{white-space:nowrap}.segmented{width:100%}.segmented button{flex:1}.advanced-create{padding:15px}.metric-grid{padding:14px;grid-template-columns:repeat(2,minmax(0,1fr))}}
 
 .medical-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}.medical-actions .primary,.medical-actions .secondary{flex:1;min-width:170px}@media(max-width:750px){.medical-actions{display:grid}.medical-actions .primary,.medical-actions .secondary{width:100%}}
+
+
+.message-thread{border-top:1px solid var(--line);padding-top:18px}.thread-list{display:grid;gap:10px}.thread-message{border:1px solid var(--line);border-radius:11px;padding:13px;background:#fafbff}.thread-message>div{display:flex;justify-content:space-between;gap:10px}.thread-message strong{font-size:11px}.thread-message small{font-size:9px;color:#8d98aa}.thread-message p{font-size:12px;line-height:1.55;margin:8px 0 0;white-space:pre-wrap}.thread-compose{display:grid;gap:10px;margin-top:12px}.thread-compose textarea{min-height:90px;border:1px solid #dce3ee;border-radius:9px;padding:12px;resize:vertical;font:inherit;color:#34415a}
