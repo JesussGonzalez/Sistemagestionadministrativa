@@ -72,3 +72,5 @@
 .advanced-inline{border-top:1px solid var(--line);margin:0}.metric-grid{padding:18px 22px;display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:10px}
 .mini-metric{border:1px solid var(--line);background:#f9faff;border-radius:10px;padding:13px}.mini-metric span{display:block;text-transform:capitalize;font-size:9px;color:#8793a6;margin-bottom:7px}.mini-metric strong{font-size:20px;color:#2d3a54}
 @media(max-width:750px){.advanced-tabs{padding:0 12px 12px;overflow-x:auto;flex-wrap:nowrap}.advanced-tabs button{white-space:nowrap}.segmented{width:100%}.segmented button{flex:1}.advanced-create{padding:15px}.metric-grid{padding:14px;grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.medical-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}.medical-actions .primary,.medical-actions .secondary{flex:1;min-width:170px}@media(max-width:750px){.medical-actions{display:grid}.medical-actions .primary,.medical-actions .secondary{width:100%}}
