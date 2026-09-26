@@ -58,3 +58,5 @@
 @keyframes sgaToastIn{from{opacity:0;transform:translateY(-8px) scale(.98)}to{opacity:1;transform:none}}
 @keyframes sgaDialogIn{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
 @media(max-width:750px){.toast-stack{top:auto;right:10px;left:10px;bottom:82px;width:auto}.smart-dialog{padding:20px}.smart-dialog-actions{display:grid;grid-template-columns:1fr 1fr}.smart-dialog-actions button{width:100%}}
+
+.smart-prompt-field{grid-column:1/-1}.smart-prompt-field input,.smart-prompt-field textarea{width:100%;min-width:0}.smart-prompt-field textarea{min-height:110px;resize:vertical}.prompt-dialog{grid-template-columns:auto 1fr}
