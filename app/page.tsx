@@ -7,6 +7,7 @@ import {
   UserRound, Users, X
 } from 'lucide-react';
 import { sgaCall, SgaClientError } from '@/lib/sga-client';
+import { confirmAction, notify } from '@/lib/feedback';
 import type {
   Department, ExpedienteItem, ExpedientePermissions, Ficha, MovementCatalog, MovementItem, Paged, ParteData,
   ParteObligation, PersonnelDetail, PersonnelListItem, PersonnelPaged, Profile, Service, Structure
@@ -118,7 +119,7 @@ export default function Home(){
   const canUseSrv=!profile?.servicioId;
   const refresh=()=>setRevision(v=>v+1);
 
-  const markMessage=(text:string,kind:'error'|'success'|'info'='info')=>{setMessage(text);setMessageKind(kind)};
+  const markMessage=(text:string,kind:'error'|'success'|'info'='info')=>{setMessage(text);setMessageKind(kind);notify(text,kind)};
   const handleError=useCallback((error:unknown)=>{
     const text=errorText(error);
     if(error instanceof SgaClientError&&error.status===401){setProfile(null);setStructure({departamentos:[],servicios:[],puedeEditarEstructura:false,puedeGestionarUsuarios:false});setAuthError(text);setTab('inicio');return;}
@@ -258,7 +259,7 @@ export default function Home(){
   function updateParteRow(id:string,patch:Partial<ParteData['filas'][number]>){setParte(current=>current?{...current,filas:current.filas.map(row=>row.id===id?{...row,...patch}:row)}:current);setParteDirty(old=>new Set(old).add(id))}
   function parteChanges(){return (parte?.filas||[]).filter(r=>parteDirty.has(r.id)).map(r=>({id:r.id,version:r.version,estado:r.estado,horaDesde:r.horaDesde,horaHasta:r.horaHasta,observaciones:r.observaciones}))}
   async function saveParte(){if(!parte||!parteDirty.size)return;setSaving(true);try{const res=await sgaCall<{guardados:number}>('parte.save',{filtros:parte.filtros,cambios:parteChanges()});markMessage(res.message,'success');await loadParte()}catch(error){handleError(error)}finally{setSaving(false)}}
-  async function sendParte(){if(!parte||!confirm('¿Enviar oficialmente este parte al departamento? Después quedará bloqueado hasta una reapertura.'))return;setSaving(true);try{
+  async function sendParte(){if(!parte)return;const ok=await confirmAction({title:'Enviar parte diario',message:'Se enviará oficialmente al departamento y quedará bloqueado hasta una reapertura.',confirmLabel:'Enviar parte'});if(!ok)return;setSaving(true);try{
     const cambios=parteChanges();const versiones=parte.filas.map(r=>({id:r.id,version:r.version}));const res=await sgaCall<{id:string}>('parte.send',{filtros:parte.filtros,cambios,versiones});markMessage(res.message,'success');await loadParte();if(profile?.rol==='SERVICIO'){const ob=(await sgaCall<ParteObligation>('parte.obligation')).data;setObligation(ob)}
   }catch(error){handleError(error)}finally{setSaving(false)}}
 
