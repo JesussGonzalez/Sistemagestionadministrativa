@@ -47,6 +47,7 @@ function doPost(e) {
       case 'medical.create': respuesta = crearLicenciaMedicaSGA(token, p.data || {}); break;
       case 'medical.upload': respuesta = subirComprobanteLicenciaSGA(token, String(p.id || ''), p.payload || {}); break;
       case 'medical.register': respuesta = registrarLicenciaMedicaSGA(token, String(p.id || '')); break;
+      case 'medical.expediente': respuesta = registrarExpedienteLicenciaMedicaSGA(token, String(p.id || ''), String(p.numeroExpediente || '')); break;
       case 'documents.catalog': respuesta = obtenerCatalogoDocumentosSGA(token); break;
       case 'documents.list': respuesta = listarDocumentosSGA(token, p.filtros || {}); break;
       case 'documents.save': respuesta = guardarDocumentoSGA(token, p.data || {}); break;
