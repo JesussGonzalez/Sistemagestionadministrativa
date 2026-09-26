@@ -60,3 +60,15 @@
 @media(max-width:750px){.toast-stack{top:auto;right:10px;left:10px;bottom:82px;width:auto}.smart-dialog{padding:20px}.smart-dialog-actions{display:grid;grid-template-columns:1fr 1fr}.smart-dialog-actions button{width:100%}}
 
 .smart-prompt-field{grid-column:1/-1}.smart-prompt-field input,.smart-prompt-field textarea{width:100%;min-width:0}.smart-prompt-field textarea{min-height:110px;resize:vertical}.prompt-dialog{grid-template-columns:auto 1fr}
+
+
+/* Flujos avanzados traídos del Apps Script actual */
+.advanced-panel{margin-top:22px}.advanced-panel+.advanced-panel{margin-top:18px}
+.segmented,.advanced-tabs{display:flex;gap:6px;flex-wrap:wrap}
+.segmented button,.advanced-tabs button{border:1px solid #dfe5ef;background:#fff;color:#6d788d;border-radius:9px;padding:9px 12px;font-size:10px;font-weight:800}
+.segmented button.active,.advanced-tabs button.active{background:#efeaff;border-color:#cfc3ff;color:#654bd3}
+.advanced-tabs{padding:0 22px 16px;border-bottom:1px solid var(--line)}
+.advanced-create{border-top:1px solid var(--line);padding:20px 22px;background:#fbfcff}.advanced-create .form-grid{max-width:1000px}
+.advanced-inline{border-top:1px solid var(--line);margin:0}.metric-grid{padding:18px 22px;display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:10px}
+.mini-metric{border:1px solid var(--line);background:#f9faff;border-radius:10px;padding:13px}.mini-metric span{display:block;text-transform:capitalize;font-size:9px;color:#8793a6;margin-bottom:7px}.mini-metric strong{font-size:20px;color:#2d3a54}
+@media(max-width:750px){.advanced-tabs{padding:0 12px 12px;overflow-x:auto;flex-wrap:nowrap}.advanced-tabs button{white-space:nowrap}.segmented{width:100%}.segmented button{flex:1}.advanced-create{padding:15px}.metric-grid{padding:14px;grid-template-columns:repeat(2,minmax(0,1fr))}}
