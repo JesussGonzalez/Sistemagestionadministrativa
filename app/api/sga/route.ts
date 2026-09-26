@@ -9,7 +9,7 @@ const ACTIONS = new Set([
   'login','session','logout','password.change','password.users','password.reset',
   'structure','structure.department.save','structure.service.save',
   'users.list','users.save','functions.get','functions.save','schedules.list','schedules.save',
-  'medical.access','medical.catalog','medical.list','medical.get','medical.doctor.save','medical.create','medical.upload','medical.register',
+  'medical.access','medical.catalog','medical.list','medical.get','medical.doctor.save','medical.create','medical.upload','medical.register','medical.expediente',
   'medical.worked','medical.notes','medical.file','medical.pdf',
   'documents.catalog','documents.list','documents.save','documents.link','documents.cancel',
   'libro.catalog','libro.list','libro.save',
