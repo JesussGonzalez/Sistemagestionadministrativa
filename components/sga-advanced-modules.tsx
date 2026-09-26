@@ -43,6 +43,121 @@ type MovementRequestCatalog={departamentos:SelectOption[];servicios:SelectOption
 type DepartmentRequestItem={id:string;version:number;lp:string;nombre:string;departamentoId:string;servicioId:string;tipo:string;desde:string;hasta:string;horarioNuevo:string;turnoNuevo:string;servicioDestinoId:string;motivo:string;estado:string;aplicacion:string;motivoSinAccion?:string;puedeAdministrar:boolean;puedeSupervisar:boolean;puedeAnular:boolean;puedeResolver:boolean};
 type DepartmentRequestCatalog={departamentos:SelectOption[];servicios:Array<SelectOption&{grupo?:string}>;tipos:string[];puedeSolicitar:boolean;puedeAdministrar:boolean;horariosEnfermeria:string[];departamentosHorarioCerrado:string[];estadoTrabajo:string};
 
+
+export function DepartmentAdministrationModule({profile,structure}:{profile:Profile;structure:Structure}){
+  const [catalog,setCatalog]=useState<DepartmentRequestCatalog|null>(null);
+  const [pending,setPending]=useState<DepartmentRequestItem[]>([]);
+  const [loading,setLoading]=useState(false);
+  const [showArt4,setShowArt4]=useState(false);
+  const [art4,setArt4]=useState({lp:'',fechaDesde:isoHoy(),fechaHasta:isoHoy(),numeroNota:'',motivo:''});
+  const departamentoId=profile.departamentoId||'';
+
+  async function load(){
+    setLoading(true);
+    try{
+      const cat=(await sgaCall<DepartmentRequestCatalog>('departmentRequests.catalog')).data;
+      setCatalog(cat);
+      if(!cat.puedeAdministrar){setPending([]);return;}
+      const list=(await sgaCall<{total:number;items:DepartmentRequestItem[]}>('departmentRequests.list',{
+        filtros:{departamentoId,estado:'AUTORIZADA'}
+      })).data;
+      setPending((list.items||[]).filter(item=>item.puedeAdministrar&&item.aplicacion==='PENDIENTE_NOTA'));
+    }catch(e){
+      notify(e instanceof Error?e.message:'No se pudieron cargar las notas pendientes.','error');
+    }finally{setLoading(false)}
+  }
+
+  useEffect(()=>{void load()},[departamentoId]);
+
+  async function registerNote(item:DepartmentRequestItem){
+    const numeroNota=await promptAction({
+      title:'Cargar nota administrativa',
+      message:`${item.tipo} · LP ${item.lp} · ${item.nombre}. Al confirmar, se generará automáticamente el movimiento definitivo y dejará de figurar en pendientes.`,
+      label:'Número de nota',
+      placeholder:'Ej.: NO-2026-12345678-APN...',
+      minLength:1,
+      maxLength:80,
+      confirmLabel:'Registrar nota'
+    });
+    if(!numeroNota)return;
+    const ok=await confirmAction({
+      title:'Generar movimiento definitivo',
+      message:'La nota quedará vinculada a la solicitud y se registrará el movimiento en la base general. Esta operación quedará auditada.',
+      confirmLabel:'Confirmar y registrar'
+    });
+    if(!ok)return;
+    setLoading(true);
+    try{
+      const res=await sgaCall<{id:string;movimientoId:string}>('departmentRequests.note',{
+        datos:{id:item.id,version:item.version,numeroNota}
+      });
+      setPending(old=>old.filter(row=>row.id!==item.id));
+      notify(res.message||'Nota registrada y movimiento generado.','success','Movimiento registrado');
+      await load();
+    }catch(e){
+      notify(e instanceof Error?e.message:'No se pudo registrar la nota.','error');
+    }finally{setLoading(false)}
+  }
+
+  async function saveArticle4(e:FormEvent){
+    e.preventDefault();
+    if(art4.fechaHasta<art4.fechaDesde){notify('La fecha hasta no puede ser anterior a la fecha desde.','warning');return;}
+    const ok=await confirmAction({
+      title:'Registrar Artículo 4°',
+      message:`Se registrará el Artículo 4° de LP ${art4.lp} directamente como movimiento definitivo.`,
+      confirmLabel:'Registrar movimiento'
+    });
+    if(!ok)return;
+    setLoading(true);
+    try{
+      const res=await sgaCall<{id:string}>('departmentRequests.article4',{datos:art4});
+      notify(res.message||'Artículo 4° registrado.','success','Movimiento registrado');
+      setArt4({lp:'',fechaDesde:isoHoy(),fechaHasta:isoHoy(),numeroNota:'',motivo:''});
+      setShowArt4(false);
+    }catch(err){
+      notify(err instanceof Error?err.message:'No se pudo registrar el Artículo 4°.','error');
+    }finally{setLoading(false)}
+  }
+
+  if(!loading&&catalog&&!catalog.puedeAdministrar)return null;
+  if(!catalog&&loading)return <section className="panel advanced-panel"><div className="empty">Verificando tareas de Administración departamental…</div></section>;
+  if(!catalog?.puedeAdministrar)return null;
+
+  return <section className="panel advanced-panel admin-notes-panel">
+    <div className="panel-heading">
+      <div><h2>Administración departamental</h2><small>Notas autorizadas pendientes de registrar como movimiento.</small></div>
+      <div className="row-actions">
+        <button className="secondary" onClick={()=>void load()} disabled={loading}><RefreshCw size={16}/> Actualizar</button>
+        <button className="secondary" onClick={()=>setShowArt4(v=>!v)}>{showArt4?'Cerrar Art. 4°':'Nuevo Artículo 4°'}</button>
+      </div>
+    </div>
+    <div className="admin-note-summary">
+      <span className="admin-note-count">{pending.length}</span>
+      <div><strong>{pending.length===1?'nota pendiente':'notas pendientes'}</strong><small>Al cargar la nota, la solicitud se convierte en movimiento y sale de esta bandeja.</small></div>
+    </div>
+    {showArt4&&<form className="advanced-create" onSubmit={saveArticle4}>
+      <div className="form-grid">
+        <Field label="LP" value={art4.lp} onChange={v=>setArt4(x=>({...x,lp:v}))}/>
+        <Field label="Fecha desde" type="date" value={art4.fechaDesde} onChange={v=>setArt4(x=>({...x,fechaDesde:v}))}/>
+        <Field label="Fecha hasta" type="date" value={art4.fechaHasta} onChange={v=>setArt4(x=>({...x,fechaHasta:v}))}/>
+        <Field label="Número de nota" value={art4.numeroNota} onChange={v=>setArt4(x=>({...x,numeroNota:v}))}/>
+        <label className="field wide"><span>Motivo administrativo</span><textarea value={art4.motivo} minLength={8} maxLength={350} onChange={e=>setArt4(x=>({...x,motivo:e.target.value}))}/></label>
+        <button className="primary form-submit" disabled={loading||!art4.lp||!art4.numeroNota||art4.motivo.trim().length<8}>Registrar Artículo 4°</button>
+      </div>
+    </form>}
+    {pending.length?<div className="table-scroll"><table><thead><tr><th>LP</th><th>Personal</th><th>Movimiento</th><th>Servicio</th><th>Período</th><th>Acción</th></tr></thead><tbody>
+      {pending.map(item=><tr key={item.id}>
+        <td className="mono">{item.lp}</td>
+        <td><strong>{item.nombre}</strong></td>
+        <td><strong>{item.tipo}</strong><small className="subline">Autorizada · pendiente de nota</small></td>
+        <td>{structure.servicios.find(s=>s.id===item.servicioId)?.nombre||'—'}</td>
+        <td>{item.desde}{item.hasta&&item.hasta!==item.desde?` → ${item.hasta}`:''}</td>
+        <td><button className="primary" disabled={loading} onClick={()=>void registerNote(item)}>Cargar nota</button></td>
+      </tr>)}
+    </tbody></table></div>:<div className="admin-notes-empty"><CheckCircle2 size={24}/><div><strong>Sin notas pendientes</strong><small>Las notas ya registradas no vuelven a mostrarse en esta bandeja.</small></div></div>}
+  </section>;
+}
+
 export function MovementWorkflowModule({structure}:{profile:Profile;structure:Structure}){
   const [mode,setMode]=useState<'mov'|'dep'>('mov'),[loading,setLoading]=useState(false);
   const [movCat,setMovCat]=useState<MovementRequestCatalog|null>(null),[movItems,setMovItems]=useState<MovementRequestItem[]>([]);
