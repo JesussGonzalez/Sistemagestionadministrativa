@@ -14,6 +14,7 @@ import type {
 } from '@/lib/types';
 import { isoHoy, turnos } from '@/lib/types';
 import { AlertsWidget, CalendarWidget, DepartmentFunctionsModule, DepartmentsModule, DocumentsModule, LibroModule, MedicalModule, MessagesModule, ReportsModule, ServicesModule, UsersModule } from '@/components/sga-extended-modules';
+import { CustomReportsModule, MovementWorkflowModule, ParteAdvancedModule, SchedulesModule } from '@/components/sga-advanced-modules';
 
 type Tab = 'inicio'|'departamentos'|'servicios'|'usuarios'|'funciones'|'personal'|'movimientos'|'medicas'|'expedientes'|'documentos'|'parte'|'libro'|'mensajes'|'reportes';
 type Modal = 'persona'|'movimiento'|'expediente'|'password'|null;
@@ -309,12 +310,14 @@ export default function Home(){
         {tab==='departamentos'&&<DepartmentsModule profile={profile} structure={structure} onStructureChanged={()=>bootstrap(profile)}/>} 
         {tab==='servicios'&&<ServicesModule profile={profile} structure={structure} onStructureChanged={()=>bootstrap(profile)}/>} 
         {tab==='usuarios'&&<UsersModule profile={profile} structure={structure}/>} 
-        {tab==='funciones'&&<DepartmentFunctionsModule profile={profile} structure={structure}/>} 
+        {tab==='funciones'&&<><DepartmentFunctionsModule profile={profile} structure={structure}/><SchedulesModule profile={profile}/></>} 
         {tab==='medicas'&&<MedicalModule/>}
         {tab==='documentos'&&<DocumentsModule/>}
+        {tab==='movimientos'&&<MovementWorkflowModule profile={profile} structure={structure}/>}
         {tab==='libro'&&<LibroModule/>}
+        {tab==='parte'&&<ParteAdvancedModule profile={profile} structure={structure} fecha={parteFecha} departamentoId={depId}/>}
         {tab==='mensajes'&&<MessagesModule/>}
-        {tab==='reportes'&&<ReportsModule profile={profile} structure={structure}/>} 
+        {tab==='reportes'&&<><ReportsModule profile={profile} structure={structure}/><CustomReportsModule/></>} 
 
         {tab==='personal'&&<>
           <div className="toolbar"><div className="filters"><Select label="Departamento" value={depId} disabled={!canUseDep} onChange={changeDepartment}>{departments.map(d=><option key={d.id} value={d.id}>{d.nombre}</option>)}</Select><Select label="Servicio" value={srvId} disabled={!canUseSrv} onChange={setSrvId}><option value="">Todos los servicios</option>{visibleServices.map(s=><option key={s.id} value={s.id}>{s.nombre}</option>)}</Select></div><div className="toolbar-actions">{peopleCanEdit&&depId&&srvId&&<button className="primary" onClick={()=>void editPerson()}><Plus size={17}/> Nuevo personal</button>}</div></div>
