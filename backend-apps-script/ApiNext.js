@@ -120,8 +120,8 @@ function doPost(e) {
       case 'parte.archive.excel': respuesta = exportarArchivoParteExcelSGA(token, p.datos || {}); break;
       case 'parte.presence': respuesta = consultarPresenciaActualSGA(token); break;
       case 'parte.presence.excel': respuesta = exportarPresenciaActualExcelSGA(token); break;
-      case 'parte.person.add': respuesta = agregarPersonalParteSGA(token, p.datos || {}); break;
-      case 'parte.person.remove': respuesta = quitarPersonalParteSGA(token, p.datos || {}); break;
+      case 'parte.person.add': respuesta = agregarPersonalParteSGA(token, p.filtros || {}, p.datos || {}); break;
+      case 'parte.person.remove': respuesta = quitarPersonalParteSGA(token, p.filtros || {}, p.datos || {}); break;
       case 'reports.custom.templates': respuesta = obtenerPlantillasSGA(token); break;
       case 'reports.custom.template.save': respuesta = guardarPlantillaSGA(token, p.data || {}); break;
       case 'reports.custom.query': respuesta = consultarReportePersonalizadoSGA(token, String(p.reporteId || ''), p.filtros || {}); break;
